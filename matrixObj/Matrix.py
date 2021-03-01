@@ -5,7 +5,7 @@ from random import randint
 
 class Matrix:
     """A simple class for basic matrix mathematical operations.
-    The contructor takes in lists of number and/or Matrix object.
+    The constructor takes in lists of number and/or Matrix object.
     Creates a new matrix Object
 
     eg. create a new Matrix object

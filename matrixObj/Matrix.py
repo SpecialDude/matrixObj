@@ -46,7 +46,6 @@ class Matrix:
         self.__align = 0
         self.__validate_matrix(matrix)          
         self.__matrix = matrix
-        del(matrix)
 
     def __validate_matrix(self, matrix, mt="Row"):
         skip = False

@@ -1,82 +1,122 @@
- # **matrixObj**
+# **matrixObj**
 
  A small simple matrix module for basic mathematical matrix operations. Create and make us of _Matrix objects_ in your python codes, perform operations like
  Matrix Addition, Subtration, Multiplication and Scalar Division and other operations like (transpose, co-factor, inverse, minor, determinant, adjoint and elementary operation).
 
 > ## Installation
+
 ```sh
 pip install matrixObj
 ```
 
 > ## Project Demo
-```
+
+```py
 from matrixObj import Matrix
 ```
+
 You can create a new Matrix instance with any of the *python number objects* (int, float, complex and Fraction) eg.
-```
+
+```py
 matA = Matrix([5, 3, -1], [3, 5, 9], [0, 5, 2])
 
 matB = Matrix([3.0, 4.5], [2.6, 5.2])
 
-cmplxMat = Matrix([1+2j, 2+1j], [4-4j, 1-2j])
+cmplxMat = Matrix([1+2j, 2+1j], [4-4j, 1-2j], [3+0j, 1j])
 
-print(matA)
-print(matB)
-print(cmplxMat)
+print(matA,  end="   ")
+print(matA.dimension() + " Matrix")     # dimension() returns the string depicting the matrix's shape.
+
+print(matB, end="   ")
+print(matB.dimension() + " Matrix")
+
+print(cmplxMat, end="   ")
+print(cmplxMat.dimension() + " Matrix")
 ```
-```
+
+```bat
 Output:
-| 5      3      -1|
-| 3      5       9|
-| 0      5       2|
+
+| 5     3    -1|
+| 3     5     9|
+| 0     5     2|   3x3 Matrix
 
 |3.0    4.5|
-|2.6    5.2|
+|2.6    5.2|   2x2 Matrix
 
-|(1+2j) (2+1j)|
-|(4-4j) (1-2j)|
+|(1+2j)    (2+1j)|
+|(4-4j)    (1-2j)|
+|(3+0j)        1j|   3x2 Matrix
 ```
+
 with Fraction object, you will have to import it from the fractions module
-```
+
+```py
 from fractions import Fraction
 
 fracMat = Matrix([Fraction(1,3), Fraction(2,5)], [Fraction(1,2), Fraction(3,27)])
 
 print(fracMat)
 ```
-```
+
+```bat
 output:
 
 |1/3    2/5|
 |1/2    1/9|
 ```
+
 ### **Matrix Arithmetic Operations**
-```
+
+```py
 A = Matrix([1, -3, 3], [4, 0, 2])
 B = Matrix([4, 6, 0], [3, 0, 5])
 C = Matrix([3, -2], [0, 4], [-1, 5])
 D = Matrix([1, -3, 3], [4, 0, 2])
+E = Matrix([3, 1, 0], [9, -1, 2], [0, 1, 3])
 
-sumAB = A + B
-productAC = A * C
 
-print(sumAB)
-print(productAC)
-print(A == D)           # Matrix Equality
+# Addition and Subtraction
+sumAB = A + B           # Sum of matrices
+difAB = A - B           # Difference of matrices
+
+
+# Product
+productAC = A * C       # Product of matrices
+
+# Scalar Division
+a = A / 2               # Same operation as (A * 0.5)
+
+print(sumAB, "A + B")
+print(difAB, "A - B")
+print(productAC, "A * C")
+print(a, "A \u00F7 2")
+print("\nA == D:", A == D)           # Matrix Equality
+
 ```
-```
+
+```bat
 Output:
-|5      3       3|
-|7      0       7|
 
-| 0      1|
-|10      2|
+|5    3    3|
+|7    0    7| --> A + B
 
-True
+|-3    -9     3|
+| 1     0    -3| --> A - B
+
+| 0     1|
+|10     2| --> A * C
+
+| 0.5    -1.5     1.5|
+| 2.0     0.0     1.0| --> A ÷ 2
+
+A == D: True
 ```
+
 ### **Square Matrix Operations**
-```
-matrixA = Matrix([1, 0, 4], [5, 2, 1], [1, 1, 1])
+
+```py
+matrixA = Matrix([4, 8, 2], [0, 5, 2], [4, 8, 1])
 
 print(matrixA.determinant())    # The determinant of the matrix
 
@@ -84,26 +124,89 @@ print(matrixA.minor())          # The minor of the matrix
 
 print(matrixA.cofactor())       # The Cofactor of the matrix
 
-print(matrixA.inverse(infraction=True)) # Inverse of the matrix returned as a matrix of Fraction object
+print(matrixA.inverse())        # Inverse of the matrix
 ```
-```
+
+```bat
 Output:
-13
 
-|  1      4       3|
-| -4     -3       1|
-| -8    -19       2|
+-20
 
-| 1     -4       3|
-| 4     -3      -1|
-|-8     19       2|
+|-11     -8    -20|
+| -8     -4      0|
+|  6      8     20|
 
-| 1/13   4/13   -8/13|
-|-4/13  -3/13   19/13|
-| 3/13  -1/13    2/13|
+|-11      8    -20|
+|  8     -4      0|
+|  6     -8     20|
+
+|0.55    -0.4    -0.3|
+|-0.4     0.2     0.4|
+| 1.0    -0.0    -1.0|
 ```
+
+To return the inverse of the matrix in fraction, set the argument **_infraction=True_**
+
+```py
+print(matrixA.inverse(infraction=True))
+```
+
+```bat
+Output:
+
+|11/20     -2/5    -3/10|
+| -2/5      1/5      2/5|
+|    1        0       -1|
+```
+
+### More Square matrix arithmetic operations
+
+```py
+A = Matrix([4, 8, 2], [0, 5, 2], [4, 8, 1])
+B = Matrix([3, 7, 0], [2, 9, 7], [-1, -3, 0])
+
+# Power of a Square Matrix
+print( A ** 3 )                 # A³  = A * A * A
+print( A ** -1)                 # A⁻¹ = A.inverse(infraction=True)
+print( A ** -2)                 # A⁻² = A.inverse(infraction=True) ** 2
+
+# Division of Square 
+print(2 / A)                    # 2 * A.inverse(infraction)
+print( A / B)                   # A * B
+print(A / A)                    # Identity Matrix
+```
+
+```bat
+Output:
+
+|200    840    250|
+| 80    365    110|
+|180    760    225|
+
+|11/20     -2/5    -3/10|
+| -2/5      1/5      2/5|
+|    1        0       -1|
+
+|13/80    -3/10    -1/40|
+| 1/10      1/5     -1/5|
+|-9/20     -2/5     7/10|
+
+|11/10     -4/5     -3/5|
+| -4/5      2/5      4/5|
+|    2        0       -2|
+
+|  17/7       2/7      27/7|
+|-29/14       2/7    -79/14|
+| 31/14       1/7     41/14|
+
+|1    0    0|
+|0    1    0|
+|0    0    1|
+```
+
 ### **Elementary Operations**
-```
+
+```py
 mat = Matrix([3, 0, 1], [0, 2, 3], [5, -3, -1])
 
 # Elementary Row operation
@@ -113,8 +216,10 @@ print(mat.elementary_operation(1, scalar=2))    # Multiply row 1 by 2
 
 print(mat.elementary_operation(1, 3, scalar=2)) # Multiply row 3 by 2, add the result to row 1
 ```
-```
+
+```bat
 Output:
+
 | 3      0       1|
 | 5     -3      -1|
 | 0      2       3|
@@ -127,21 +232,101 @@ Output:
 | 0      2       3|
 | 5     -3      -1|
 ```
+
 For Elementary column Operation set argument row=False eg.
-```
+
+```py
 # Elementary Column operation
 
 print(mat.elementary_operation(2, 3, row=False))           # Interchanges column 2 and 3
 ```
-```
+
+```bat
+Output:
+
 | 3      1       0|
 | 0      3       2|
 | 5     -1      -3|
-````
+```
+
+### Row Reducing to Echelon Form
+
+To row reduce matrix to echelon form by means of elementary operations, call the method **_rref()_** on the matrix eg.
+
+```py
+# Reducing Matrix to echelon form
+
+a = Matrix([1, 0, -2], [2, -1, 3], [4, 1, 8])
+reduced_a = a.rref()
+
+print("Matrix a")
+print(a)
+print("\nReduced matrix a")
+print(reduced_a)
+
+b = Matrix([0, 1, 3], [4, 2, -8], (2, 3, 2))
+reduced_b = b.rref()
+
+print("\n\nMatrix b")
+print(b)
+print("\nReduced matrix b")
+print(reduced_b)
+
+print("\nThe Rank of matrix a is:", a.rank())
+print("The Rank of matrix b is:", b.rank())
+```
+
+```bat
+Output:
+
+Matrix a
+
+| 1     0    -2|
+| 2    -1     3|
+| 4     1     8|
+
+Reduced matrix a
+
+|1.0    0.0    0.0|
+|0.0    1.0    0.0|
+|0.0    0.0    1.0|
+
+
+Matrix b
+
+| 0     1     3|
+| 4     2    -8|
+| 2     3     2|
+
+Reduced matrix b
+
+| 1.0     0.0    -3.5|
+|   0       1       3|
+| 0.0     0.0     0.0|
+
+The Rank of matrix a is: 3
+The Rank of matrix b is: 2
+```
+
+By default, the _**rref()**_ method returns the reduced matrix in floating numbers, to perform the reduction operation in fraction set the argument **infraction** to **True**
+
+```py
+print(b.rref(infraction=True))
+```
+
+```bat
+Output:
+
+|   1       0    -7/2|
+|   0       1       3|
+|   0       0       0|
+```
 
 ### **Modifying the Matrix**
+
 After initialization of a Matrix object, you can change, insert new and expand the rows/columns in the matrix eg.
-```
+
+```py
 mat = Matrix([1, 0, 2], [3, 1, 0])
 
 mat.setrow(1, [5, -3, 2])       # Changes row 1 to [5, -3, 2]
@@ -151,7 +336,8 @@ mat.expandcolumn([4, 5, -4, 0]) # Appends column [4, 5, -4, 0]
 
 print(mat)      # With all the modifications we should now have a 4x4 matrix
 ```
-```
+
+```bat
 Output:
 | 5     -3       2       4|
 | 3     -3       1       5|
@@ -159,9 +345,12 @@ Output:
 | 2      5       5       0|
 
 ```
+
 #### **Modifying by Slicing**
+
 Get, set or delete part/slice of the matrix. eg.
-```
+
+```py
 # Getting part/slice of the matrix
 matA = Matrix([2, 5, -4], [4, 5, 9], [-1, -8, 0], [7, 0, 5])
 
@@ -173,10 +362,11 @@ print(matA[:, -1])          # Gets the last column of the matrix
 
 print(matA[0:3])            # Gets the first, the second and the third row
 
-print(matA[-1::-1, -1::-1]) # Gets the reverse of the matrix rows with each row also reversed
+print(matA[::-1, ::-1]) # Gets the reverse of the matrix rows with each row also reversed
 
 ```
-```
+
+```bat
 Output:
 4
 
@@ -193,7 +383,8 @@ Output:
 | 9     5     4|
 |-4     5     2|
 ```
-```
+
+```py
 # Setting part/slice of the matrix
 matA[1] = [-20, 40, 10]     # sets the second row
 print(matA)
@@ -201,7 +392,8 @@ print(matA)
 matA[:, 0] = [1, 2, 3, 4]   # sets the first column
 print(matA)
 ```
-```
+
+```bat
 Output:
 
 |  2      5     -4|
@@ -214,8 +406,10 @@ Output:
 |  3     -8      0|
 |  4      0      5|
 ```
+
 All elements in a slice can be set to the same scalar value eg.
-```
+
+```py
 matA[-1] = 4        # Sets all the elements in the last row to 4
 print(matA)
 
@@ -223,7 +417,8 @@ from fractions import Fraction
 matA[:] = Fraction(1, 3)    # Sets all elements in the matrix to 1/3
 print(matA)
 ```
-```
+
+```bat
 Output:
 | 2     5    -4|
 | 4     5     9|
@@ -235,26 +430,32 @@ Output:
 |1/3    1/3    1/3|
 |1/3    1/3    1/3|
 ```
+
 Using the __*del()*__ function to delete some part of the matrix, this can only delete complete row(s) or column...
-```
+
+```py
 matA = Matrix([2, 5, -4], [4, 5, 9], [-1, -8, 0], [7, 0, 5])
 ```
-```
+
+```py
 del(matA[1])            # Deletes the second row
 print(matA)
 ```
-```
+
+```bat
 Output:
 
 | 2     5    -4|
 |-1    -8     0|
 | 7     0     5|
 ```
-```
+
+```py
 del(matA[:, 0])         # Deletes the first column
 print(matA)
 ```
-```
+
+```bat
 Output:
 
 | 5    -4|
@@ -262,21 +463,26 @@ Output:
 |-8     0|
 | 0     5|
 ```
-```
+
+```py
 del(matA[1:-1]) # Deletes the second row up to the last row
 print(matA)
 ```
-```
+
+```bat
 Output:
 
 | 2     5    -4|
 | 7     0     5|
 ```
+
 **_NOTE_**: Using the methods (_**insertrow()**_, _**insertcolumn()**_, _**expandrow()**_, _**removerow()**_ etc.) to modify matrix take indexes from 1 instead of slicing which takes indexes from 0
 
-###  **String Representation**
-The String Representation of the Matrix object (as can be seen from the examples above). All elements (four H_whitespaced from each other and rightly justified) in each row of the matrix are arranged in between two pipe charater "|" but guess what? You can change the this representation to any other desired representation with **_setrepr()_** method. eg. If your loyalty is to python (^_^) and you prefer to have your matrix represented as python list...
-```
+### **String Representation**
+
+The String Representation of the Matrix object (as can be seen from the examples above). All elements (four H_whitespaced from each other and rightly justified) in each row of the matrix are arranged in between two pipe charater "|" but guess what? You can change the this representation to any other desired representation with **_setrepr()_** method. eg. If you prefer to have your matrix represented as python list...
+
+```py
 # Declear a function that takes exactly one argument and returns a str
 # This argument will be the tuple of the matrix rows
 # which will be supplied by the matrix class when invoking the function
@@ -289,21 +495,259 @@ Matrix.setrepr(newrepr)
 mat = Matrix([4, 5, -1], [0, 1, 3], [5, 2, 7])
 print(mat)
 ```
-```
+
+```bat
 Output:
 [[4, 5, -1], [0, 1, 3], [5, 2, 7]]
 ```
+
 You can do str manipulation on the matrix parameter in the body of your defined function and simply return the desired str representantion for your matrix objects. To change back to the defaul representation, use **_resetrepr()_**
 
+> ## **Augmented Matrix**
+
+A subclass of the Matrix class. Append the columns of two matrix to form an augmented matrix and perform the same elementary operations on both matrices augmented together.
+The constructor takes two arguments (matrix A and matrix B) which can be matrix objects or a list of matrix rows of both matrices
+
+```py
+>>> matA = Matrix([3, 5, 9], [1, -2, 0], [2, 3, 1])
+>>> b = [4, -5, 7]
+>>> augmentAB = AugMatrix(matA, augcolumn=b)
+>>> augmentAB
+AMatrix(
+| 3     5     9 |  4 |
+| 1    -2     0 | -5 |
+| 2     3     1 |  7 |)
+>>> 
+
+# Augmented Matrix from two matrices
+
+>>> matA = Matrix([5, 7, 0], [1, -1, 2], [3, 0, 1])
+>>> matB = Matrix([1, 0, 9], [4, 2, 1], [2, 1, 0])
+>>>
+>>> augAB = AugMatrix(matA, matB)
+>>> augAB
+AMatrix(
+| 5     7     0 |  1     0     9 |
+| 1    -1     2 |  4     2     1 |
+| 3     0     1 |  2     1     0 |)
+>>> 
+
+# If a second matrix is not supplied, the first matrix is augmented with it's last column as the augmented part
+
+>>> c = Matrix([-2, 3, 1, 5], [3, 0, 9, 2], [1, 2, 9, 0])
+>>> augC = AugMatrix(c)
+>>> augC
+AMatrix(
+|-2     3     1 |  5 |
+| 3     0     9 |  2 |
+| 1     2     9 |  0 |)
+>>> 
+
+#If a second integer argument is suppied, the first matrix is augmented by indexing from the integer argument
+
+>>> d = Matrix([4, 5, 0, 1, -1], [-2, 2, 1, 3, -1], [3, 7, 0, -5, 2])
+>>> augD = AugMatrix(d, 3)
+AMatrix(
+| 4     5     0 |  1    -1 |
+|-2     2     1 |  3    -1 |
+| 3     7     0 | -5     2 |)
+>>>
+```
+
+### **Solving System of linear Equation**
+
+Suppose there's a system of linear equations which may be consistent with unique solution or many solutions or inconsistent with no solution. e.g.
+
+```tex
+Consistent Equations with Unique Solution
+        1                       2
+2x + y  -  z = 1         a + 2b +  c = 2
+   + 2y +  z = 2        3a +  b - 2c = 1
+5x + 2y - 3z = 3        4a - 3b -  c = 3
+```
+
+```py
+#                       1
+
+# 2x + y  -  z = 1
+#    + 2y +  z = 2
+# 5x + 2y - 3z = 3 
+
+# to matrix
+coeficients = Matrix(   [2, 1, -1],
+                        [0, 2, 1],
+                        [5, 2, -3]  )
+
+constants = Matrix( [1],
+                    [2],
+                    [3] )
+
+augEquation = AugMatrix( coeficients, constants )
+reducedEquation = augEquation.rref(infraction=True)
+solution = reducedEquation.augcolumn
+print(augEquation)
+print(reducedEquation)
+print(solution)
+
+print(f"\nx = {solution[0, 0]}")
+print(f"y = {solution[1, 0]}")
+print(f"z = {solution[2, 0]}")
+
+```
+
+```bat
+Output:
+
+| 2     1    -1 |  1 |
+| 0     2     1 |  2 |
+| 5     2    -3 |  3 |
+
+| 1     0     0 | -3 |
+| 0     1     0 |  3 |
+| 0     0     1 | -4 |
+
+|-3|
+| 3|
+|-4|
+
+x = -3
+y = 3
+z = -4
+```
+
+```py
+#                       2
+#  a + 2b +  c = 2
+# 3a +  b - 2c = 1
+# 4a - 3b -  c = 3
+
+coeficients = Matrix(   [1, 2, 1],
+                        [3, 1, -2],
+                        [4, -3, -1] )
+constants = Matrix( [2],
+                    [1],
+                    [3] )
+
+equations = AugMatrix( coeficients, constants )
+reducedEquation = equations.rref(infraction=True)
+solution = reducedEquation.augcolumn
+
+print(equations)
+print(solution)
+
+print(f"\na = {solution[0, 0]}, b = {solution[1, 0]}, c = {solution[2, 0]}")
+```
+
+```bat
+Output:
+
+| 1     2     1 |  2 |
+| 3     1    -2 |  1 |
+| 4    -3    -1 |  3 |
+
+|1|
+|0|
+|1|
+
+a = 1, b = 0, c = 1
+
+```
+
+This type of equation can also be solved algebraically or using Cramer's Rule
+
+```tex
+                       2
+  a + 2b +  c = 2
+ 3a +  b - 2c = 1
+ 4a - 3b -  c = 3
+
+In Matrix
+
+[1    2    1]           [a]             [2]
+[3    1   -2]     x     [b]     =       [1]
+[4   -1   -1]           [c]             [3]
+
+      A           x      B      =        C
+
+Algebraically:
+
+A x B = C   -->   B = C / A     -->    B = A⁻¹ x C
+
+Using Cramer's Rule (Bᵢ = |Aᵢ| ÷ |A|)
+
+a = |A₁| ÷ |A|
+b = |A₂| ÷ |A|
+c = |A₃| ÷ |A|
+```
+
+```py
+# Algebraically
+
+A = Matrix([1, 2, 1], [3, 1, -2], [4, -1, -1])
+C = Matrix([2], [1], [3])
+
+B = (A ** -1) * C
+print(B)
+
+print(f"\nB = {[int(i) for i in B.getcolumn(1)]}")
+
+# By Cramer's Rule
+print("\nUsing Cramer's Rule")
+det = A.determinant()           # Determinant of Matrix A
+
+# Value of a
+Acopy = A.copy()                # Making a copy of Matrix A
+Acopy[:, 0] = C                 # Modifying Matrix, seting column 1 of A to C
+a = Acopy.determinant() / det
+print(f"a = {a}")
+
+# Value of b
+Acopy = A.copy()                # Making a copy of Matrix A
+Acopy[:, 1] = C                 # Modifying Matrix, seting column 1 of A to C
+b = Acopy.determinant() / det
+print(f"b = {b}")
+
+# Value of c
+Acopy = A.copy()                # Making a copy of Matrix A
+Acopy[:, 2] = C                 # Modifying Matrix, seting column 1 of A to C
+c = Acopy.determinant() / det
+print(f"c = {c}")
+```
+
+```bat
+Output: 
+
+|1|
+|0|
+|1|
+
+B = [1, 0, 1]
+
+Using Cramer's Rule
+a = 1.0
+b = -0.0
+c = 1.0
+```
+
 ### **Other Methods of the Matrix class**
+
 - tranpose(): returns the transpose of matrix
+- nonzeros(): returns the number non-zero rows/columns in matrix
+- sum(): returns the sum of all elements in matrix
+- identity(): generates identity matrix
 - zero_matrix(): generates a zero matrix
 - ones_matrix(): generates a ones matrix
 - random_matrix(): generates a matrix with random numbers
-- generate_identity_matrix(): generates identity matrix
 
 Boolean Methods
+
 - issquare()
 - symmetric()
 - skew()
-- invertible()  etc.
+- invertible()
+- isorthogonal()
+- isnormal()
+- isrowmatrix()
+- iscolumnmatrix()
+- issingletonmatrix()
+- isnull()

@@ -1,12 +1,12 @@
 import setuptools
 
-with open("README.md", "r") as rm:
+with open("README.md", encoding="utf8") as rm:
     README = rm.read()
 
 setuptools.setup(
     name="matrixObj",
     packages=["matrixObj"],
-    version="1.1.2",
+    version="1.2.0",
     license="MIT",
     description="A simple matrix module for basic matrix mathematical operations",
     long_description=README,

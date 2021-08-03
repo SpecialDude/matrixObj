@@ -683,7 +683,7 @@ class Matrix:
         return inverse_matrix
 
     # Elementary Operation
-    def elementary_operation(self, i:int, j=None, /, *, scalar=None, row=True):
+    def elementary_operation(self, i:int, j=None, *, scalar=None, row=True):
         """Perform Elementary operation on matrix (returns the new matrix).
         eg.
             >>> matA = Matrix([1, 1, 1], [2, 2, 2], [3, 3, 3])
@@ -932,7 +932,7 @@ def constant_matrix(number, size:tuple):
     """Generates a constant matrix (of value 'number') of any specified size"""
     return Matrix._unitgenerator(number, size)
 
-def elementary_matrix(matrixsize:int, i:int, j:int=None,/, *, scalar:int=None, row:bool=True):
+def elementary_matrix(matrixsize:int, i:int, j:int=None, *, scalar:int=None, row:bool=True):
     """Generates Elementary matrix of any size.
         \nTo generate elementary matrix Ei(\u03b1) of size 3
         >>> elementary_matrix(3, i, scalar=\u03b1)

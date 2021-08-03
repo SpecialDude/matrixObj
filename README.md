@@ -1,6 +1,6 @@
  # **matrixObj**
 
- A small simple matrix module for basic mathematical matrix operations. Create and make use of _Matrix objects_ in your python codes, perform operations like
+ A small simple matrix module for basic mathematical matrix operations. Create and make us of _Matrix objects_ in your python codes, perform operations like
  Matrix Addition, Subtration, Multiplication and Scalar Division and other operations like (transpose, co-factor, inverse, minor, determinant, adjoint and elementary operation).
 
 > ## Installation

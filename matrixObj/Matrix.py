@@ -2,6 +2,7 @@ from fractions import Fraction
 import copy
 from random import randint
 
+
 class Matrix:
     """A simple class for basic matrix mathematical operations.
     The contructor takes in lists of number and/or Matrix object.
@@ -96,14 +97,18 @@ class Matrix:
         if not isinstance(object, compare_type):
             raise TypeError (f"'{operator}' not supported between instances of '{Matrix.__name__}' and '{type(object).__name__}'")
 
-    def __isavalidindex(self, index:int, mt:str, raise_exception=False):
+    def __isavalidindex(self, index:int, mt:str, raise_exception=False, same=True):
         if not isinstance(index, int):
             raise TypeError (f"{index} --> Index must be an int")
         
-        size_func_dict = {"row":self.rowsize, "column":self.columnsize}    
+        size_func_dict = {"row":self.rowsize, "column":self.columnsize}
+        if index < 1:
+            index = index + size_func_dict[mt]()
         if (index < 1) or (index > size_func_dict[mt]()):
             if not raise_exception:
                 return False
+            if not same:
+                index -= 1    
             raise IndexError (f"'{index}' --> {mt.title()} index out of range ")    
         return True
 
@@ -187,7 +192,8 @@ class Matrix:
         """Returns a tuple of elements of the ith (index) column of the matrix"""
         if not self.__isavalidindex(index, mt="column"):
             return None
-        return tuple([row[index - 1] for row in self.__matrix])
+        index -= 1    
+        return tuple([row[index] for row in self.__matrix])
 
     def getelement(self, row_index:int, column_index:int):
         """Returns the element in the specified row and column of the matrix"""
@@ -231,8 +237,9 @@ class Matrix:
         self.__isavalidindex(column_index, mt="column", raise_exception=True)
         self.__validate_list(column_elements, mt="column")
 
+        column_index -= 1
         for i in range(len(column_elements)):
-            self.__matrix[i][column_index - 1] = column_elements[i]
+            self.__matrix[i][column_index] = column_elements[i]
 
     def setelement(self, row_index:int, column_index:int, element) -> None:
         """Change the value of [i][j]th element of the matrix
@@ -272,36 +279,55 @@ class Matrix:
         self.__isavalidindex(column_index, mt="column", raise_exception=True)
         self.__validate_list(column_elements, mt="column")
 
+        column_index -= 1
         for i in range(len(column_elements)):
-            self.__matrix[i].insert(column_index - 1, column_elements[i])
+            self.__matrix[i].insert(column_index, column_elements[i])
     
     def removerow(self, row_index):
         """Remove a row from the matrix"""
         self.__isavalidindex(row_index, mt="row", raise_exception=True)
-
         del(self.__matrix[row_index-1])
 
     def removecolumn(self, column_index):
         """Remove a column from the matrix"""
         self.__isavalidindex(column_index, mt="column", raise_exception=True)
-
+        column_index -= 1
         for i in range(self.rowsize()):
-            del(self.__matrix[i][column_index - 1])
+            del(self.__matrix[i][column_index])
 
-    def expandrow(self, *list_of_rows:list) -> None:
-        """To append more rows to the end of the last row in the matrix"""
+    def expandrow(self, *list_of_rows:list, append="post", input_type=0) -> None:
+        """
+        To append more row to the end (post) or before the first row (pre) of the matrix.
+        For pre append, set argument append="pre"
+                >>> mat.expandrow(row_elements, append="pre")
+        """
         rows = list(copy.deepcopy(list_of_rows))
-        self.__validate_matrix(rows, mt="row")
-        self.__matrix = self.__matrix + rows
+        if input_type == 1:
+            rows = list(rows[0])
 
-    def expandcolumn(self, *list_of_columns:list) -> None:
-        """To append more columns to the end of the last column in the matrix"""
+        self.__validate_matrix(rows, mt="row")
+        if append == "pre":
+            self.__matrix = rows + self.__matrix
+        else:     
+            self.__matrix = self.__matrix + rows
+
+    def expandcolumn(self, *list_of_columns:list, append="post", input_type=0) -> None:
+        """
+        To append more columns to the end (post) or before the first column (pre) of the matrix.
+        For pre append, set argument append="pre"
+                >>> mat.expandcolumn(column_elements, append="pre")
+        """
         columns = list(copy.deepcopy(list_of_columns))
+        if input_type == 1:
+            columns = list(columns[0])
         self.__validate_matrix(columns, mt="column")
 
         for i in range(len(columns)):
             for j in range(len(columns[i])):
-                self.__matrix[j].append(columns[i][j])
+                if append == "pre":
+                    self.__matrix[j].insert(i, columns[i][j])
+                else:    
+                    self.__matrix[j].append(columns[i][j])
 
     def copy(self):
         """Make a full copy of the matrix instance"""
@@ -392,6 +418,203 @@ class Matrix:
         exponent = [[self.__matrix[i][j] ** other for j in range(self.columnsize())] for i in range(self.rowsize())]
         return Matrix(exponent, input_type=1)
 
+    def __getitem__(self, index):
+        if isinstance(index, int):  # Gets a particular row
+            self.__isavalidindex(index + 1, mt="row", raise_exception=True, same=False)
+            return Matrix(self.__matrix[index])
+        if isinstance(index, slice):  # Gets couple of rows
+            self.__isavalidindex(self.__start(index.start) + 1, mt='row', raise_exception=True, same=False)
+            return Matrix(self.__matrix[index], input_type=1)    
+        if isinstance(index, tuple):
+            if len(index) > 2:
+                raise IndexError (f"{index} --> Too many indices, {len(index)} indices were given for 2d matrix")
+            if isinstance(index[0], slice):
+                self.__isavalidindex(self.__start(index[0].start) + 1, mt="row", raise_exception=True, same=False)
+                if isinstance(index[1], int):       # Gets a particular column or its slice
+                    self.__isavalidindex(index[1] + 1, mt='column', raise_exception=True, same=False)                    
+                    return Matrix(self.getcolumn(index[1] + 1)[index[0]])
+                elif isinstance(index[1], slice):   # Gets couple of rows and/or their slice
+                    self.__isavalidindex(self.__start(index[1].start) + 1, mt="column", raise_exception=True, same=False)
+                    mat = self.__matrix[index[0]]
+                    for i in range(len(mat)):
+                        mat[i] = mat[i][index[1]]
+                    return Matrix(mat, input_type=1)
+            elif isinstance(index[0], int):         # Gets an element
+                self.__isavalidindex(index[0] + 1, mt='row', raise_exception=True, same=False)
+                if isinstance(index[1], int):                    
+                    self.__isavalidindex(index[1] + 1, mt="column", raise_exception=True, same=False)
+                    return self.__matrix[index[0]][index[1]]
+                elif isinstance(index[1], slice):        # Gets a particular row and/or its slice
+                    self.__isavalidindex(self.__start(index[1].start) + 1, mt="column", raise_exception=True, same=False)    
+                    return Matrix(self.__matrix[index[0]][index[1]])
+        raise IndexError (f"{index} --> Index must be an int and/or slice [:]")
+
+    def __cal_indexes(self, sliceVar:slice, column=False):
+        start = sliceVar.start
+        stop = sliceVar.stop
+        step = sliceVar.step
+
+        size = {False:self.rowsize, True:self.columnsize}
+              
+        if step == None:    
+            step = 1
+        if start == None:
+            if step < 0:
+                start = -1
+            else:    
+                start = 0
+        if stop == None:
+            stop = size[column]()   
+
+        if start < 0:
+            start = start + size[column]()
+        if stop < 0:
+            stop = stop + size[column]()
+        elif stop >= size[column]() and step < 0:
+            stop = -1
+
+        list_of_indices = [i for i in range(start, stop, step)]
+        return list_of_indices
+
+    def __constant_list(self, value, rowsize, columnsize=None):
+        self.__update_alignment(value)
+        if columnsize != None:
+            return [[value for j in range(columnsize)] for i in range(rowsize)]
+        return [value for i in range(rowsize)]
+
+    
+    def __start(self, start):
+        if not start:
+            start = 0
+        return start       
+
+    def __setitem__(self, index, value):     
+        value = copy.deepcopy(value)
+
+        if isinstance(index, int):  # Sets a particular row
+            self.__isavalidindex(index + 1, mt="row", raise_exception=True, same=False)
+            if isinstance(value, Matrix.__tuple_of_supported_types):
+                value = self.__constant_list(value, self.columnsize())
+            elif isinstance(value, (list, tuple)):
+                self.__validate_list(value, mt="row")
+            else:
+                raise ValueError(f"{value} --> Invalid value, cannot copy in a matrix row")     
+            self.__matrix[index] = value
+            return
+        if isinstance(index, slice):  # sets couple of rows
+            self.__isavalidindex(self.__start(index.start) + 1, mt='row', raise_exception=True, same=False)
+            indices = self.__cal_indexes(index)
+            if isinstance(value, Matrix.__tuple_of_supported_types):
+                value = self.__constant_list(value, len(indices), self.columnsize())
+            elif isinstance(value, (list, tuple)):
+                if len(indices) == len(value):
+                    self.__validate_matrix(value, mt="row")
+                else:
+                    raise ValueError(f"{value} --> unbound value for the supplied indices") 
+            else:
+                raise ValueError(f"{value} --> Invalid value, cannot copy in matrix row")
+            self.__matrix[index] = value
+            return  
+        if isinstance(index, tuple):
+            if len(index) > 2:
+                raise IndexError (f"{index} --> Too many indices, {len(index)} indices were given for 2d matrix")
+            if isinstance(index[0], slice):
+                self.__isavalidindex(self.__start(index[0].start) + 1, mt="row", raise_exception=True, same=False)
+                if isinstance(index[1], int):       # Sets a particular column or its slice
+                    self.__isavalidindex(index[1] + 1, mt='column', raise_exception=True, same=False)
+                    indices = self.__cal_indexes(index[0])                    
+                    if isinstance(value, Matrix.__tuple_of_supported_types):
+                        value = self.__constant_list(value, len(indices))
+                    elif isinstance(value, (list, tuple)):
+                        if len(indices) != len(value):
+                            raise ValueError(f"{value} --> unbound value for the supplied indices")
+                    else:
+                        raise ValueError(f"{value} --> Invalid value, cannot copy in matrix row")
+                    column = list(self.getcolumn(index[1] + 1))
+                    column[index[0]] = value
+                    self.setcolumn(index[1] + 1, column)
+                    return
+                elif isinstance(index[1], slice):
+                    self.__isavalidindex(self.__start(index[1].start) + 1, mt="column", raise_exception=True, same=False)
+                    matrix_indices = self.__cal_indexes(index[0])
+                    row_indices = self.__cal_indexes(index[1], column=True)
+                    if isinstance(value, Matrix.__tuple_of_supported_types):
+                        value = self.__constant_list(value, len(matrix_indices), len(row_indices))
+                    elif isinstance(value, (list, tuple)):
+                        if len(matrix_indices) != len(value):
+                            raise ValueError(f"{value} --> unbound value for the supplied indices")
+                        if len(row_indices) != len(value[0]):
+                            raise ValueError(f"{value[0]} --> unbound value for the supplied indices")
+                        self.__validate_matrix(value)
+                    else:
+                        raise ValueError(f"{value} --> Invalid value, cannot copy in matrix row")
+                    for i in range(len(matrix_indices)):
+                        self.__matrix[matrix_indices[i]][index[1]] = value[i]
+                    return
+            elif isinstance(index[0], int):
+                self.__isavalidindex(index[0] + 1, mt='row', raise_exception=True, same=False)
+                if isinstance(index[1], int):                    
+                    self.__isavalidindex(index[1] + 1, mt="column", raise_exception=True, same=False)
+                    if not isinstance(value, Matrix.__tuple_of_supported_types):
+                        raise TypeError (f"{value} --> Matrix Element must be a number type {Matrix.__tuple_string_of_supported_types}")
+                    self.__matrix[index[0]][index[1]] = value        # Sets Element
+                    self.__update_alignment(value)
+                    return
+                elif isinstance(index[1], slice):       # Sets a particular row or its slice
+                    self.__isavalidindex(self.__start(index[1].start) + 1, mt="column", raise_exception=True, same=False)
+                    column_indices = self.__cal_indexes(index[1], column=True)
+                    if isinstance(value, Matrix.__tuple_of_supported_types):
+                        value = self.__constant_list(value, len(column_indices))
+                    elif isinstance(value, (tuple, list)):
+                        if len(column_indices) != len(value):
+                            raise ValueError(f"{value} --> unbound value for the supplied indices")
+                        self.__validate_matrix([value])
+                    else:
+                        raise ValueError(f"{value} --> Invalid value, cannot copy in matrix row")
+                    self.__matrix[index[0]][index[1]] = value
+                    return
+        raise IndexError (f"{index} --> Index must be an int and/or slice [:]")
+
+    def __delitem__(self, index):
+        if isinstance(index, int):
+            self.__isavalidindex(index + 1, mt="row", raise_exception=True, same=False)
+            del(self.__matrix[index])
+            return
+        elif isinstance(index, slice):
+            self.__isavalidindex(self.__start(index.start) + 1, mt="row", raise_exception=True, same=False)
+            del(self.__matrix[index])
+            return
+        elif isinstance(index, tuple):
+            if len(index) > 2:
+                raise IndexError (f"{index} --> Too many indices, {len(index)} indices were given for 2d matrix")
+            if isinstance(index[0], slice):
+                self.__isavalidindex(self.__start(index[0].start) + 1, mt="row", raise_exception=True, same=False)                
+                if isinstance(index[1], int):
+                    matrix_indices = self.__cal_indexes(index[0])
+                    self.__isavalidindex(index[1] + 1, mt="column", raise_exception=True, same=False)
+                    if len(matrix_indices) != self.rowsize():
+                        raise IndexError("Can only delete a complete column")
+                    self.removecolumn(index[1] + 1)
+                    return
+                elif isinstance(index[1], slice):
+                    self.__isavalidindex(self.__start(index[1].start) + 1, mt="column", raise_exception=True, same=False)
+                    row_indices = self.__cal_indexes(index[1], column=True)
+                    if len(row_indices) != self.columnsize():
+                        raise IndexError("Can only delete a complete row(s)")
+                    del(self.__matrix[index[0]])
+                    return
+            elif isinstance(index[0], int):
+                if isinstance(index[1], int):
+                    raise IndexError("Cannot delete a single entry of a matrix")
+                if isinstance(index[1], slice):
+                    self.__isavalidindex(self.__start(index[1].start) + 1, mt="column", raise_exception=True, same=False)
+                    row_indices = self.__cal_indexes(index[1], column=True)
+                    if len(row_indices) != self.columnsize():
+                        raise IndexError("Can only delete a complete row")
+                    del(self.__matrix[index[0]])
+                    return
+        raise IndexError (f"{index} --> Index must be an int and/or slice [:]")
+
     # Other Matrix Operation Methods
     def transpose(self):
         """Returns the transpose of the matrix"""
@@ -460,7 +683,7 @@ class Matrix:
         return inverse_matrix
 
     # Elementary Operation
-    def elementary_operation(self, i:int, j=None, *, scalar=None, row=True):
+    def elementary_operation(self, i:int, j=None, /, *, scalar=None, row=True):
         """Perform Elementary operation on matrix (returns the new matrix).
         eg.
             >>> matA = Matrix([1, 1, 1], [2, 2, 2], [3, 3, 3])
@@ -709,7 +932,7 @@ def constant_matrix(number, size:tuple):
     """Generates a constant matrix (of value 'number') of any specified size"""
     return Matrix._unitgenerator(number, size)
 
-def elementary_matrix(matrixsize:int, i:int, j:int=None, *, scalar:int=None, row:bool=True):
+def elementary_matrix(matrixsize:int, i:int, j:int=None,/, *, scalar:int=None, row:bool=True):
     """Generates Elementary matrix of any size.
         \nTo generate elementary matrix Ei(\u03b1) of size 3
         >>> elementary_matrix(3, i, scalar=\u03b1)

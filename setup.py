@@ -6,7 +6,7 @@ with open("README.md", "r") as rm:
 setuptools.setup(
     name="matrixObj",
     packages=["matrixObj"],
-    version="1.0.2",
+    version="1.1.1",
     license="MIT",
     description="A simple matrix module for basic matrix mathematical operations",
     long_description=README,
@@ -15,9 +15,9 @@ setuptools.setup(
     author_email="warithadetayo.awa@gmail.com",
     url="https://github.com/SpecialDude/matrixObj",
     classifiers=[
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent"
     ],
-    python_requires=">=3"
+    python_requires=">=3.8"
 )

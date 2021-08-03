@@ -1,6 +1,6 @@
- # matrixObj
+ # **matrixObj**
 
- A small simple matrix module for basic mathematical matrix operations. Create and make use of _Matrix objects_ in your python codes, perform operations like
+ A small simple matrix module for basic mathematical matrix operations. Create and make us of _Matrix objects_ in your python codes, perform operations like
  Matrix Addition, Subtration, Multiplication and Scalar Division and other operations like (transpose, co-factor, inverse, minor, determinant, adjoint and elementary operation).
 
 > ## Installation
@@ -50,7 +50,7 @@ output:
 |1/3    2/5|
 |1/2    1/9|
 ```
-### Matrix Arithmetic Operations
+### **Matrix Arithmetic Operations**
 ```
 A = Matrix([1, -3, 3], [4, 0, 2])
 B = Matrix([4, 6, 0], [3, 0, 5])
@@ -74,7 +74,7 @@ Output:
 
 True
 ```
-### Square Matrix Operations
+### **Square Matrix Operations**
 ```
 matrixA = Matrix([1, 0, 4], [5, 2, 1], [1, 1, 1])
 
@@ -102,7 +102,7 @@ Output:
 |-4/13  -3/13   19/13|
 | 3/13  -1/13    2/13|
 ```
-### Elementary Operations
+### **Elementary Operations**
 ```
 mat = Matrix([3, 0, 1], [0, 2, 3], [5, -3, -1])
 
@@ -139,7 +139,7 @@ print(mat.elementary_operation(2, 3, row=False))           # Interchanges column
 | 5     -1      -3|
 ````
 
-### Modifying the Matrix
+### **Modifying the Matrix**
 After initialization of a Matrix object, you can change, insert new and expand the rows/columns in the matrix eg.
 ```
 mat = Matrix([1, 0, 2], [3, 1, 0])
@@ -159,7 +159,122 @@ Output:
 | 2      5       5       0|
 
 ```
-###  String Representation
+#### **Modifying by Slicing**
+Get, set or delete part/slice of the matrix. eg.
+```
+# Getting part/slice of the matrix
+matA = Matrix([2, 5, -4], [4, 5, 9], [-1, -8, 0], [7, 0, 5])
+
+print(matA[1, 0])           # Gets first element in the second row 
+
+print(matA[2])              # Gets the third row of the matrix
+
+print(matA[:, -1])          # Gets the last column of the matrix 
+
+print(matA[0:3])            # Gets the first, the second and the third row
+
+print(matA[-1::-1, -1::-1]) # Gets the reverse of the matrix rows with each row also reversed
+
+```
+```
+Output:
+4
+
+|-1    -8     0|
+
+|-4     9     0     5|
+
+| 2     5    -4|
+| 4     5     9|
+|-1    -8     0|
+
+| 5     0     7|
+| 0    -8    -1|
+| 9     5     4|
+|-4     5     2|
+```
+```
+# Setting part/slice of the matrix
+matA[1] = [-20, 40, 10]     # sets the second row
+print(matA)
+
+matA[:, 0] = [1, 2, 3, 4]   # sets the first column
+print(matA)
+```
+```
+Output:
+
+|  2      5     -4|
+|-20     40     10|
+| -1     -8      0|
+|  7      0      5|
+
+|  1      5     -4|
+|  2     40     10|
+|  3     -8      0|
+|  4      0      5|
+```
+All elements in a slice can be set to the same scalar value eg.
+```
+matA[-1] = 4        # Sets all the elements in the last row to 4
+print(matA)
+
+from fractions import Fraction
+matA[:] = Fraction(1, 3)    # Sets all elements in the matrix to 1/3
+print(matA)
+```
+```
+Output:
+| 2     5    -4|
+| 4     5     9|
+|-1    -8     0|
+| 4     4     4|
+
+|1/3    1/3    1/3|
+|1/3    1/3    1/3|
+|1/3    1/3    1/3|
+|1/3    1/3    1/3|
+```
+Using the __*del()*__ function to delete some part of the matrix, this can only delete complete row(s) or column...
+```
+matA = Matrix([2, 5, -4], [4, 5, 9], [-1, -8, 0], [7, 0, 5])
+```
+```
+del(matA[1])            # Deletes the second row
+print(matA)
+```
+```
+Output:
+
+| 2     5    -4|
+|-1    -8     0|
+| 7     0     5|
+```
+```
+del(matA[:, 0])         # Deletes the first column
+print(matA)
+```
+```
+Output:
+
+| 5    -4|
+| 5     9|
+|-8     0|
+| 0     5|
+```
+```
+del(matA[1:-1]) # Deletes the second row up to the last row
+print(matA)
+```
+```
+Output:
+
+| 2     5    -4|
+| 7     0     5|
+```
+**_NOTE_**: Using the methods (_**insertrow()**_, _**insertcolumn()**_, _**expandrow()**_, _**removerow()**_ etc.) to modify matrix take indexes from 1 instead of slicing which takes indexes from 0
+
+###  **String Representation**
 The String Representation of the Matrix object (as can be seen from the examples above). All elements (four H_whitespaced from each other and rightly justified) in each row of the matrix are arranged in between two pipe charater "|" but guess what? You can change the this representation to any other desired representation with **_setrepr()_** method. eg. If your loyalty is to python (^_^) and you prefer to have your matrix represented as python list...
 ```
 # Declear a function that takes exactly one argument and returns a str
@@ -180,7 +295,7 @@ Output:
 ```
 You can do str manipulation on the matrix parameter in the body of your defined function and simply return the desired str representantion for your matrix objects. To change back to the defaul representation, use **_resetrepr()_**
 
-### Other Methods of the Matrix class
+### **Other Methods of the Matrix class**
 - tranpose(): returns the transpose of matrix
 - zero_matrix(): generates a zero matrix
 - ones_matrix(): generates a ones matrix

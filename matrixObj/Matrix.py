@@ -1,6 +1,7 @@
 from fractions import Fraction
 import copy
 from random import randint
+import stringprep
 
 
 class Matrix:
@@ -100,12 +101,12 @@ class Matrix:
         if not isinstance(object, compare_type):
             raise TypeError (f"'{operator}' not supported between instances of '{Matrix.__name__}' and '{type(object).__name__}'")
 
-    def __isavalidindex(self, index, mt, raise_exception=False, same=True):
+    def __isavalidindex(self, index, mt, raise_exception=False, same=True, fix_negative_index=True):
         if not isinstance(index, int):
             raise TypeError (f"{index} --> Index must be an int")
         
         size_func_dict = {"row":self.rowsize, "column":self.columnsize}
-        if index < 1:
+        if index < 1 and fix_negative_index:
             index = index + size_func_dict[mt]()
         if (index < 1) or (index > size_func_dict[mt]()):
             if not raise_exception:
@@ -213,7 +214,7 @@ class Matrix:
             return None
         if not self.__isavalidindex(column_index, mt="column"):
             return None
-        return self.__matrix[row_index - 1][column_index - 1]    
+        return self.__matrix[row_index - 1][column_index - 1]
 
     def getdiagonals(self):
         """Returns the diagonal elements of a square matrix"""
@@ -316,6 +317,11 @@ class Matrix:
         column_index -= 1
         for i in range(self.rowsize()):
             del(self.__matrix[i][column_index])
+
+    def removecolumnbyslice(self, slice_var):
+        """Remove slice of columns from the matrix"""
+        for i in range(self.rowsize()):
+            del(self.__matrix[i][slice_var])        
 
     def expandrow(self, *list_of_rows, append="post", input_type=0):
         """
@@ -521,7 +527,7 @@ class Matrix:
             stop = stop + size[column]()
         elif stop >= size[column]() and step < 0:
             stop = -1
-
+        
         list_of_indices = [i for i in range(start, stop, step)]
         return list_of_indices
 
@@ -690,7 +696,11 @@ class Matrix:
                     self.__isavalidindex(self.__start(index[1].start) + 1, mt="column", raise_exception=True, same=False)
                     row_indices = self.__cal_indexes(index[1], column=True)
                     if len(row_indices) != self.columnsize():
-                        raise IndexError("Can only delete a complete row(s)")
+                        column_indices = self.__cal_indexes(index[0], column=False)
+                        if len(column_indices) == self.rowsize():
+                            self.removecolumnbyslice(index[1])
+                            return
+                        raise IndexError("Can only delete a complete row(s) or column(s)")
                     del(self.__matrix[index[0]])
                     return
             elif isinstance(index[0], int):
@@ -711,10 +721,14 @@ class Matrix:
         transposed = [[self.__matrix[j][i] for j in range(self.rowsize())] for i in range(self.columnsize())]
         return Matrix(transposed, input_type=1)
     
-    def determinant(self):
+    def determinant_by_minor_expansion(self):
         """Returns the determinant of the matrix (Square Matrix)"""
         if not self.issquare():
             raise ValueError ('matrix is not a square matrix')
+
+        if self.rowsize() == 1:
+            return self.__matrix[0][0]
+
         if self.rowsize() == 2:
             return (    (self.__matrix[0][0] * self.__matrix[1][1] ) - (self.__matrix[1][0] * self.__matrix[0][1])   )
         
@@ -726,12 +740,68 @@ class Matrix:
             del(matrix_copy[0])
             determinant += ( (-1) ** (2+j) ) * self.__matrix[0][j] * Matrix(matrix_copy, input_type=1).determinant()
         return(determinant)
+    
+    def determinant(self):
+        """Returns the determinant of the matrix (Square Matrix)"""
 
+        if not self.issquare():
+            raise ValueError ('matrix is not a square matrix')
+
+        matrix = self.copy()
+
+        swaps = 0
+        j = 0
+        while j < matrix.columnsize() - 1 and j < matrix.rowsize() - 1:
+            column = matrix.getcolumn(j + 1)
+
+            if Matrix._isconstantlist(column, 0):
+                j += 1
+                continue
+            pe = matrix.getrow(j + 1)[j]
+
+            if pe == 0:
+                column = column[j + 1 :]
+
+                try:
+                    index = column.index(1) + 1
+                    index += j
+                except ValueError:
+                    for k in range(len(column)):
+                        if column[k] != 0:
+                            index = k + j + 1
+                            break
+                    else:
+                        j += 1
+                        continue
+                
+                matrix = matrix.elementary_operation(j + 1, index + 1)
+                pe = matrix.getrow(j + 1)[j]
+                swaps += 1
+            
+            
+            ipe = Matrix._inverseof(pe, infraction=True)  
+            
+            e_column = list(enumerate(matrix.getcolumn(j + 1)))[j + 1 :]
+
+            for index, element in e_column:
+                if element == 0:
+                    continue
+                ielement = (-element) * ipe
+                matrix = matrix.elementary_operation(index + 1, j + 1, scalar=ielement)
+            
+            j += 1
+        
+        d = 1
+        for e in matrix.getdiagonals():
+            d *= e
+        return d * ((-1) ** swaps)
+        
     def minor(self):
         """Returns the minor of the matrix (Square Matrix)"""
         if not self.issquare():
             raise ValueError ('matrix is not a square matrix')
-
+        if self.rowsize() == 1:
+            raise ValueError ('cannot compute minor of 1x1 matrix')
         minor_matrix = []
         for i in range(self.rowsize()):
             row = []
@@ -748,11 +818,40 @@ class Matrix:
             minor_matrix.append(row)
         return Matrix(minor_matrix, input_type=1)
 
+    def minor_at_ij(self, i, j):
+        """Returns the minor at i,j of the matrix (i, j indexed from 1)"""
+        if not self.issquare():
+            raise ValueError ('matrix is not a square matrix')
+        if self.rowsize() == 1:
+            raise ValueError ('cannot compute minor of 1x1 matrix')
+
+        self.__isavalidindex(i, mt='row', raise_exception=True, same=True, fix_negative_index=False)
+        self.__isavalidindex(j, mt='column', raise_exception=True, same=True, fix_negative_index=False)
+
+        matrix_copy = copy.deepcopy(self.__matrix)
+        for k in range(self.rowsize()):
+            del(matrix_copy[k][j-1])
+
+        del(matrix_copy[i-1])
+
+        if self.rowsize() == 2:
+            element_minor = matrix_copy[0][0]
+        else:
+            element_minor = Matrix(matrix_copy, input_type=1).determinant()
+
+        return element_minor       
+
     def cofactor(self):
         """Returns the cofactor of the matrix (Square Matrix)"""
         minor_matrix = self.minor().getmatrix()
         cofactor_matrix = [[(-1)**(i+j+2) * minor_matrix[i][j] for j in range(len(minor_matrix[0]))] for i in range(len(minor_matrix))]
         return Matrix(cofactor_matrix, input_type=1)
+
+    def cofactor_at_ij(self, i, j):
+        """Returns the cofactor of the matrix (Square Matrix)"""
+        element_minor = self.minor_at_ij(i, j)
+
+        return (-1)**(i+j) * element_minor
 
     def adjoint(self):
         """Returns the adjoint of the matrix i.e tranpose of the cofactor matrix (Square Matrix)"""
@@ -775,7 +874,118 @@ class Matrix:
     def additiveinverse(self):
         """Returns the additive inverse of the matrix"""
         return self * -1
-    
+
+    def reduce_to_ltriangle(self, infraction=True):
+        """Reduce matrix to a lower triangular matrix by Gaussian Elimination"""
+        if self.rowsize() > self.columnsize():
+            raise ValueError("Cannot reduce matrix(m x n) with m > n")
+        
+        matrix = self.copy()
+
+        j = matrix.rowsize() - 1
+        while j > 0:
+            column = matrix.getcolumn(j + 1)
+
+            if Matrix._isconstantlist(column, 0):
+                j -= 1
+                continue
+            pe = matrix.getrow(j + 1)[j]
+
+            if pe == 0:
+                column = column[:j]
+
+                try:
+                    index = column.index(1)
+                except ValueError:
+                    for k in range(len(column) -1, -1, -1):
+                        if column[k] != 0:
+                            index = k
+                            break
+                    else:
+                        j -= 1
+                        continue
+                             
+                matrix = matrix.elementary_operation(j + 1, index + 1)
+                pe = matrix.getrow(j + 1)[j]
+                
+            
+            ipe = Matrix._inverseof(pe, infraction)  
+            
+            e_column = list(enumerate(matrix.getcolumn(j + 1)))[:j]
+
+            for index, element in e_column:
+                if element == 0:
+                    continue
+                ielement = (-element) * ipe
+                matrix = matrix.elementary_operation(index + 1, j + 1, scalar=ielement)
+            
+            j -= 1
+        if not matrix.issquare():
+            return AugMatrix(matrix, matrix.rowsize())
+        return Matrix(matrix)
+
+    def reduce_to_utriangle(self, infraction=True):
+        """Reduce matrix to a upper triangular matrix by Gaussian Elimination"""
+        if self.rowsize() > self.columnsize():
+            raise ValueError("Cannot reduce matrix(m x n) with m > n")
+        
+        matrix = self.copy()
+        
+        j = 0
+        while j < matrix.columnsize()-1 and j < matrix.rowsize()-1:
+            column = matrix.getcolumn(j + 1)
+
+            if Matrix._isconstantlist(column, 0):
+                j += 1
+                continue
+            pe = matrix.getrow(j + 1)[j]
+
+            if pe == 0:
+                column = column[j + 1 :]
+
+                try:
+                    index = column.index(1) + 1
+                    index += j
+                except ValueError:
+                    for k in range(len(column)):
+                        if column[k] != 0:
+                            index = k + j + 1
+                            break
+                    else:
+                        j += 1
+                        continue
+
+                """ if 1 in column:
+                    index = column.index(1) + 1
+                    index += j
+                else:
+                    for k in range(len(column)):
+                        if column[k] != 0:
+                            index = k + j + 1
+                            break
+                    else:
+                        j += 1
+                        continue """
+                
+                matrix = matrix.elementary_operation(j + 1, index + 1)
+                pe = matrix.getrow(j + 1)[j]
+            
+            
+            ipe = Matrix._inverseof(pe, infraction)
+            
+            e_column = list(enumerate(matrix.getcolumn(j + 1)))[j + 1 :]
+
+            for index, element in e_column:
+                if element == 0:
+                    continue
+                ielement = (-element) * ipe
+                matrix = matrix.elementary_operation(index + 1, j + 1, scalar=ielement)
+            
+            j += 1
+        if not matrix.issquare():
+            return AugMatrix(matrix, matrix.rowsize())
+        return Matrix(matrix)
+
     def rref(self, infraction=False):
         """Row Reduce matrix to Echelon Form, returns the reduced matrix
         \nSet argument 'infraction = True' to return the reduced Matrix in fraction.
@@ -794,10 +1004,10 @@ class Matrix:
             if pe == 0:
                 column = column[j + 1 :]
 
-                if 1 in column:
+                try:
                     index = column.index(1) + 1
                     index += j
-                else:
+                except ValueError:
                     for k in range(len(column)):
                         if column[k] != 0:
                             index = k + j + 1
@@ -1079,7 +1289,7 @@ class Matrix:
     
     # Class Methods
     @classmethod
-    def setrepr(cls, func):
+    def setrepr(cls, func, args=None):
         """Change the string representation of the matrix class
         \nDefine a function that takes exactly one parameter and returns a string,then call the setrepr() method with the defined function's object as argument.
         \nThis function will be called when invoking the __str__() method and the matrix's element as a tuple of list will be passed in as argument
@@ -1095,13 +1305,15 @@ class Matrix:
         Perform string manipulation on the passed argument 'matrix' in the defined function and return the string of the desired representation
                 
         """
+        
         cls.__user_repr = func
         cls.__user_defined_repr_present = True
 
     @classmethod
     def resetrepr(cls):
         """Reset back the String Representation of the Matrix class to the default representation."""
-        cls.__user_defined_repr_present = False    
+        cls.__user_defined_repr_present = False
+        cls.__user_repr = None
 
 
     # Static Methods
@@ -1111,13 +1323,18 @@ class Matrix:
         """
         if not isinstance(shape, tuple):
             raise TypeError (f"{shape} --> Required a tuple of matrix dimension e.g (2,3) for a 2x3 matrix")
+        
         rowsize, columnsize = shape
+        
+        if rowsize == 0 or columnsize == 0:
+            raise ValueError("row or column size cannot be zero")
+
         unitMatrix = [[unit for j in range(columnsize)] for i in range(rowsize)]
         return Matrix(unitMatrix, input_type=1)
     
     @staticmethod
     def _inverseof(num, infraction=False):
-        if infraction:
+        if infraction and isinstance(num, int):
             return Fraction(1, num)
         return 1/num
     
@@ -1243,6 +1460,10 @@ class AugMatrix(Matrix):
         jstr = "\n".join(k)
         m_str = "\n" + jstr
         return m_str
+
+    @property
+    def _Matrix__align(self):
+        return self.__fullmatrix._Matrix__align
     
     def __repr__(self):
         return "AMatrix(" + self.__str__() + ")"
@@ -1267,10 +1488,10 @@ class AugMatrix(Matrix):
             if pe == 0:
                 column = column[j + 1 :]
 
-                if 1 in column:
+                try:
                     index = column(1) + 1
                     index += j
-                else:
+                except ValueError:
                     for k in range(len(column)):
                         if column[k] != 0:
                             index = k + j + 1
@@ -1408,11 +1629,16 @@ def random_matrix(lower, upper, shape):
     """Randomly generates a matrix of any specified shape"""
     if not isinstance(shape, tuple):
             raise TypeError (f"{shape} --> Required a tuple of matrix dimension e.g (2,3) for a 2x3 matrix")
+
     rowsize, columnsize = shape
+
+    if rowsize == 0 or columnsize == 0:
+            raise ValueError("row or column size cannot be zero")
+
     randomMatrix = [[randint(lower, upper) for j in range(columnsize)] for i in range(rowsize)]
     return Matrix(randomMatrix, input_type=1)
 
-def random_constant_matrix(self, lower, upper, shape):
+def random_constant_matrix(lower, upper, shape):
     """Generates a random constant matrix of any shape"""
     return Matrix._unitgenerator(randint(lower, upper), shape)
 
@@ -1451,3 +1677,4 @@ def augment_matrix(*matrixrows, augmentedcolumn=None, input_type=0):
     """Creates an Augmented Matrix"""
     return AugMatrix(Matrix(*matrixrows, input_type=input_type), augmentedcolumn)
 
+# Thanks for scrolling down to the end 🙂

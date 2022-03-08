@@ -1,7 +1,6 @@
 from fractions import Fraction
 import copy
 from random import randint
-import stringprep
 
 
 class Matrix:
@@ -192,7 +191,7 @@ class Matrix:
 
     # Object Attribute Getters and Setters
     def getmatrix(self):
-        """Returns the elements of the matrix object as a tuple of list"""
+        """Returns a copy of the matrix elements as a tuple of list"""
         return tuple(copy.deepcopy(self.__matrix))
 
     def getrow(self, index):
@@ -1289,7 +1288,7 @@ class Matrix:
     
     # Class Methods
     @classmethod
-    def setrepr(cls, func, args=None):
+    def setrepr(cls, func):
         """Change the string representation of the matrix class
         \nDefine a function that takes exactly one parameter and returns a string,then call the setrepr() method with the defined function's object as argument.
         \nThis function will be called when invoking the __str__() method and the matrix's element as a tuple of list will be passed in as argument
@@ -1676,5 +1675,6 @@ def inverseof(num, infraction = False):
 def augment_matrix(*matrixrows, augmentedcolumn=None, input_type=0):
     """Creates an Augmented Matrix"""
     return AugMatrix(Matrix(*matrixrows, input_type=input_type), augmentedcolumn)
+
 
 # Thanks for scrolling down to the end 🙂

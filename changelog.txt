@@ -1,0 +1,25 @@
+matrixObj v1.2.1
+
+
+Matrix
+Bugs Fix
+	- random_constant_matrix() function
+	- Determinant, Minor and Cofactor of a 1x1 Matrix
+	- Raise error for 0x0 matrix generation
+	- Indices exception (Fixing negative indexes)
+
+Optimization
+	- Gaussian Elimination method for computing Determinant
+
+New Methods
+	- reducing to upper trangular matrix
+	- reducing to lower trangular matrix
+	- minor at i,j position
+	- cofactor at i,j position
+	- can now delete slice of columns
+
+AugMatrix
+New Properties
+	- _Matrix_align (Alignment value for the Augmatrix's full matrix)
+	- full_matrix (Return the AugMatrix as a Matrix) (removed!!!)
+	- Type Casting AugMatrix to Matrix

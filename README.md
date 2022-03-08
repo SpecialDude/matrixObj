@@ -1,6 +1,6 @@
 # **matrixObj**
 
- A small simple matrix module for basic mathematical matrix operations. Create and make use of _Matrix objects_ in your python codes, perform operations like
+ A simple matrix module for basic mathematical matrix operations. Create and make use of _Matrix objects_ in your python codes, perform operations like
  Matrix Addition, Subtration, Multiplication and Scalar Division and other operations like (transpose, co-factor, inverse, minor, determinant, adjoint and elementary operation).
 
 > ## Installation
@@ -54,7 +54,10 @@ with Fraction object, you will have to import it from the fractions module
 ```py
 from fractions import Fraction
 
-fracMat = Matrix([Fraction(1,3), Fraction(2,5)], [Fraction(1,2), Fraction(3,27)])
+fracMat = Matrix(
+    [Fraction(1,3), Fraction(2,5)],
+    [Fraction(1,2), Fraction(3,27)]
+    )
 
 print(fracMat)
 ```
@@ -87,11 +90,11 @@ productAC = A * C       # Product of matrices
 # Scalar Division
 a = A / 2               # Same operation as (A * 0.5)
 
-print(sumAB, "A + B")
-print(difAB, "A - B")
-print(productAC, "A * C")
-print(a, "A \u00F7 2")
-print("\nA == D:", A == D)           # Matrix Equality
+print(sumAB, "--> A + B")
+print(difAB, "--> A - B")
+print(productAC, "--> A * C")
+print(a, "--> A \u00F7 2")          # Unicode of Division Symbol (\u00F7)
+print("\nA == D:", A == D)          # Matrix Equality
 
 ```
 
@@ -157,6 +160,21 @@ Output:
 |11/20     -2/5    -3/10|
 | -2/5      1/5      2/5|
 |    1        0       -1|
+```
+
+To get minor and co-factor at a particular ith, jth position of the matrix, use the methods ***minor_at_ij()*** and ***cofactor_at_ij()*** (i and j positions are indexed from 1 instead of 0) eg.
+
+```py
+print(matrixA.minor_at_ij(1, 1))      # Minor at row 1 column 1
+
+print(matrixA.cofactor_at_ij(3, 1))   # Cofactor at row 3 column 1 
+```
+
+```bat
+Output:
+
+-11
+6
 ```
 
 ### More Square matrix arithmetic operations
@@ -322,6 +340,53 @@ Output:
 |   0       0       0|
 ```
 
+### Reducing to Upper and Lower Triangular Matrix
+
+Reduce square matrices to upper or lower triangular matrices. eg,
+
+```py
+>>> import matrixObj
+>>> 
+>>> matrix = matrixObj.random_matrix(-10, 15, (3, 3))
+>>> # Generates a random matrix of size 3 (with random numbers between -10 and 15)
+>>> 
+>>> matrix
+Matrix(
+|-5    -7    11|
+| 9    15     6|
+| 5    15    -3|)
+>>> 
+>>> matrix.reduce_to_utriangle() # Reduce to upper triangle matrix
+Matrix(
+|   -5       -7       11|
+|    0     12/5    129/5|
+|    0        0      -78|)
+>>> 
+>>> matrix.reduce_to_ltriangle() # Reduce to lower triangle matrix
+Matrix(
+|-104/15          0          0|
+|     19         45          0|
+|      5         15         -3|)
+>>> 
+```
+If matrix is not a square matrix and the row size is less than the column size, reducing to triangular matrix returns an AugMatrix (the extra columns are augmented), otherwise (i.e rowsize > columnsize), raises ValueError
+
+```py
+>>> matrix = matrixObj.random_matrix(-8, 8, (3, 4))
+>>> matrix
+Matrix(
+|3    6    4    8|
+|8    4    2    6|
+|3    5    0    2|)
+>>> 
+>>> matrix.reduce_to_ltriangle()
+AMatrix(
+|-59/2        0        0 |    -8 |
+| 13/2        1        0 |     2 |
+|    3        6        4 |     8 |)
+>>> 
+```
+
 ### **Modifying the Matrix**
 
 After initialization of a Matrix object, you can change, insert new and expand the rows/columns in the matrix eg.
@@ -362,7 +427,7 @@ print(matA[:, -1])          # Gets the last column of the matrix
 
 print(matA[0:3])            # Gets the first, the second and the third row
 
-print(matA[::-1, ::-1]) # Gets the reverse of the matrix rows with each row also reversed
+print(matA[::-1, ::-1])     # Gets the reverse of the matrix rows with each row also reversed
 
 ```
 
@@ -431,7 +496,7 @@ Output:
 |1/3    1/3    1/3|
 ```
 
-Using the __*del()*__ function to delete some part of the matrix, this can only delete complete row(s) or column...
+Using the __*del()*__ function to delete some part of the matrix, this can only delete complete row(s) or column(s)...
 
 ```py
 matA = Matrix([2, 5, -4], [4, 5, 9], [-1, -8, 0], [7, 0, 5])
@@ -476,11 +541,33 @@ Output:
 | 7     0     5|
 ```
 
+```py
+from matrixObj import random_matrix
+matB = random_matrix(-10, 10, (4, 6))
+print(matB)
+del(matB[:, -1:0:-2]) # Deletes columns 6, 4, and 2
+print(matB)
+```
+
+```bat
+Output:
+
+|-10      0     -5     -9      7     -3|
+|  4     -8     -4     -7      9      3|
+| -1      9      8     -7      2     -5|
+|  2      4      5     -1     -6     -1|
+
+|-10     -5      7|
+|  4     -4      9|
+| -1      8      2|
+|  2      5     -6|
+```
+
 **_NOTE_**: Using the methods (_**insertrow()**_, _**insertcolumn()**_, _**expandrow()**_, _**removerow()**_ etc.) to modify matrix take indexes from 1 instead of slicing which takes indexes from 0
 
 ### **String Representation**
 
-The String Representation of the Matrix object (as can be seen from the examples above). All elements (four H_whitespaced from each other and rightly justified) in each row of the matrix are arranged in between two pipe charater "|" but guess what? You can change the this representation to any other desired representation with **_setrepr()_** method. eg. If you prefer to have your matrix represented as python list...
+The String Representation of the Matrix object (as can be seen from the examples above). All elements (four H_whitespaced from each other and rightly justified) in each row of the matrix are arranged in between two pipe charater "|" but guess what? You can change the representation to any other desired representation with **_setrepr()_** method. eg. If you prefer to have your matrix represented as python list, consider the example below:
 
 ```py
 # Declear a function that takes exactly one argument and returns a str
@@ -509,6 +596,9 @@ A subclass of the Matrix class. Append the columns of two matrix to form an augm
 The constructor takes two arguments (matrix A and matrix B) which can be matrix objects or a list of matrix rows of both matrices
 
 ```py
+>>> from matrixObj import AugMatrix
+>>> 
+>>> 
 >>> matA = Matrix([3, 5, 9], [1, -2, 0], [2, 3, 1])
 >>> b = [4, -5, 7]
 >>> augmentAB = AugMatrix(matA, augcolumn=b)
@@ -702,14 +792,14 @@ a = Acopy.determinant() / det
 print(f"a = {a}")
 
 # Value of b
-Acopy = A.copy()                # Making a copy of Matrix A
-Acopy[:, 1] = C                 # Modifying Matrix, seting column 1 of A to C
+Acopy = A.copy()
+Acopy[:, 1] = C                 # Modifying Matrix, seting column 2 of A to C
 b = Acopy.determinant() / det
 print(f"b = {b}")
 
 # Value of c
-Acopy = A.copy()                # Making a copy of Matrix A
-Acopy[:, 2] = C                 # Modifying Matrix, seting column 1 of A to C
+Acopy = A.copy()
+Acopy[:, 2] = C                 # Modifying Matrix, seting column 3 of A to C
 c = Acopy.determinant() / det
 print(f"c = {c}")
 ```
@@ -738,6 +828,7 @@ c = 1.0
 - zero_matrix(): generates a zero matrix
 - ones_matrix(): generates a ones matrix
 - random_matrix(): generates a matrix with random numbers
+- trace(): returns the sum of the diagonal elements
 
 Boolean Methods
 

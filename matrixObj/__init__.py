@@ -1,1 +1,1 @@
-from matrixObj.Matrix import *
+from .Matrix import *
